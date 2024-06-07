@@ -1,11 +1,165 @@
-<html>
-  <head>
-    <title>RPG</title>
-    <style type="text/css">
-	  </style>
-  </head>
-  <body>
-    <canvas></canvas>
-    <script type="module" src="main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platformer Metroidvania Game</title>
+    <style>
+        /* Style your canvas here */
+        canvas {
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+            width: 750px; /* Adjust canvas width */
+            height: 550px; /* Adjust canvas height */
+        }
+        body {
+            background-color: #222;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="700" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Player object
+        const player = {
+            x: 100,
+            y: 100,
+            speed: 9.0,
+            maxSpeed: 9.0,
+            width: 50,
+            height: 55,
+            velocityX: 0,
+            velocityY: 0,
+            lastValue:0,
+            gravity: 3.0,
+            isJumping: false,
+            xp: 0,
+            level: 0,
+            gold: 0,
+        };
+
+        const platform = {
+            x: 350, // Adjust platform position
+            y: 405, // Adjust platform position
+            width: 190,
+            height: 100,
+        }
+
+        // Event listener for player movement
+        window.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    if (player.velocityX > -player.maxSpeed) {
+                        player.velocityX += -player.speed / 2;
+                    } else {
+                        player.velocityX = -player.maxSpeed;
+                    }
+                    
+                    break;
+                case 'ArrowRight':
+                    if (player.velocityX < player.maxSpeed) {
+                        player.velocityX += player.speed;
+                    } else {
+                        player.velocityX = player.maxSpeed;
+                    }
+                    break;
+            }
+        });
+
+        function colCheck(a, player) {
+            if(player.y > a.y + a.height && player.x + player.width > a.x && player.x < a.x + a.width) {
+                return "u"
+            }
+            if(player.y + player.height < a.y) {
+                return "d"
+            }
+            if(player.x > a.x + a.width) {
+                return "r"
+            }
+            if(player.x + b.width < a.x) {
+                return "l"
+            } else {
+                return false;
+            }
+        }
+        
+        window.addEventListener('keyup', (e) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    player.velocityX = 0;
+                    break;
+                case 'ArrowRight':
+                    player.velocityX = 0;
+                    break;
+            }
+        });
+
+        // Update game state
+        function update() {
+            player.lastValue = player.y;
+            player.velocityY += player.gravity;
+            if (colCheck(platform, player) == "u") {
+                player.velocityY = 0;
+                player.y = player.lastValue;
+            }
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+
+            // Check collision with canvas boundaries
+            if (player.x < 0) {
+                player.x = 0; // Prevent going off the left edge
+            } else if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width; // Prevent going off the right edge
+            }
+
+            if (player.y < 0) {
+                player.y = 0; // Prevent going above the top edge
+                player.velocityY = 0; // Stop vertical movement
+            } else if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height; // Prevent going below the bottom edge
+                player.isJumping = false; // Reset jumping state
+                player.velocityY = 0; // Stop vertical movement
+            }
+        }
+
+        
+        window.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (!player.isJumping) {
+                        player.velocityY = -45; // Jump strength
+                        player.isJumping = true;
+                    }
+                    break;
+            }
+        })
+
+        // Render game
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw walls (you can customize this part)
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height); // Example wall
+
+            ctx.fillStyle = 'red';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        // Game loop
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        gameLoop();
+    </script>
+</body>
 </html>
